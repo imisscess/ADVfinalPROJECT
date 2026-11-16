@@ -15,6 +15,8 @@ const links = [
   { href: "/category/first-aid", label: "First Aid" },
   { href: "/category/baby-care", label: "Baby Care" },
   { href: "/category/personal-care", label: "Personal Care" },
+  { href: "/cart", label: "Cart" },
+  { href: "/checkout", label: "Checkout" },
   { href: "/contact", label: "Contact" },
 ];
 

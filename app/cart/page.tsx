@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { useCart } from "./CartProvider";
 import { getProductById } from "../lib/products";
+import { RequireCustomerAuth } from "../auth/RequireCustomerAuth";
 
-export default function CartPage() {
+function CartPageContent() {
   const { lines, subtotal, setQty, remove, clear } = useCart();
 
   const detailed = useMemo(() => {
@@ -178,6 +179,17 @@ export default function CartPage() {
         </aside>
       </div>
     </main>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <RequireCustomerAuth
+      title="Sign in to view your cart"
+      body="Create or sign in to an account to add products, view your cart, and check out."
+    >
+      <CartPageContent />
+    </RequireCustomerAuth>
   );
 }
 

@@ -4,8 +4,8 @@ import "./globals.css";
 import { CartProvider } from "./cart/CartProvider";
 import { AuthProvider } from "./auth/AuthProvider";
 import { SearchProvider } from "./search/SearchProvider";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { SiteChrome } from "./components/SiteChrome";
+import { FirebaseClient } from "./components/FirebaseClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,12 +34,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-surface text-slate-900">
+        <FirebaseClient />
         <AuthProvider>
           <SearchProvider>
             <CartProvider>
-              <Navbar />
-              {children}
-              <Footer />
+              <SiteChrome>{children}</SiteChrome>
             </CartProvider>
           </SearchProvider>
         </AuthProvider>

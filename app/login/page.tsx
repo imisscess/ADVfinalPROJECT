@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { safeAuthNext } from "../auth/RequireCustomerAuth";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeAuthNext(searchParams.get("next"));
   const { login, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   if (user) {
     return (
@@ -53,14 +57,17 @@ export default function LoginPage() {
 
         <form
           className="mt-6 grid gap-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            const res = login({ email, password });
+            setPending(true);
+            setError(null);
+            const res = await login({ email, password });
+            setPending(false);
             if (!res.ok) {
               setError(res.error ?? "Login failed.");
               return;
             }
-            router.push("/account");
+            router.push(next);
           }}
         >
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
@@ -94,20 +101,29 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b21b6]"
+            disabled={pending}
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b21b6] disabled:opacity-60"
           >
-            Login
+            {pending ? "Signing in…" : "Login"}
           </button>
         </form>
 
         <div className="mt-5 text-sm text-slate-600">
           No account?{" "}
-          <Link href="/register" className="font-semibold text-brand">
+          <Link href={`/register?next=${encodeURIComponent(next)}`} className="font-semibold text-brand">
             Create one
           </Link>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
 

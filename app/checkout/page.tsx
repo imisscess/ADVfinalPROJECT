@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useCart } from "../cart/CartProvider";
 import { useAuth } from "../auth/AuthProvider";
+import { RequireCustomerAuth } from "../auth/RequireCustomerAuth";
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const { subtotal, clear, count } = useCart();
   const { user } = useAuth();
   const [placed, setPlaced] = useState(false);
@@ -52,14 +53,6 @@ export default function CheckoutPage() {
             Enter delivery details and place your order.
           </p>
         </div>
-        {!user ? (
-          <Link
-            href="/login"
-            className="rounded-2xl border border-border bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
-          >
-            Login for faster checkout
-          </Link>
-        ) : null}
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -147,6 +140,17 @@ export default function CheckoutPage() {
         </aside>
       </div>
     </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <RequireCustomerAuth
+      title="Sign in to check out"
+      body="An account is required before you can place an order."
+    >
+      <CheckoutPageContent />
+    </RequireCustomerAuth>
   );
 }
 

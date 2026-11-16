@@ -41,14 +41,18 @@ function safeParseLines(raw: string | null): CartLine[] {
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [lines, setLines] = useState<CartLine[]>(() => {
-    if (typeof window === "undefined") return [];
-    return safeParseLines(window.localStorage.getItem(STORAGE_KEY));
-  });
+  const [lines, setLines] = useState<CartLine[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setLines(safeParseLines(window.localStorage.getItem(STORAGE_KEY)));
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
-  }, [lines]);
+  }, [hydrated, lines]);
 
   const value = useMemo<CartContextValue>(() => {
     const count = lines.reduce((sum, l) => sum + l.quantity, 0);

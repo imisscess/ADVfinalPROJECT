@@ -1,17 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { safeAuthNext } from "../auth/RequireCustomerAuth";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = safeAuthNext(searchParams.get("next"));
   const { register, user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   if (user) {
     return (
@@ -49,19 +53,22 @@ export default function RegisterPage() {
           Register
         </h1>
         <p className="mt-2 text-sm text-slate-600">
-          Create an account (stored in localStorage for this demo).
+          Create an account. It is saved in Firebase Authentication.
         </p>
 
         <form
           className="mt-6 grid gap-4"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            const res = register({ name, email, password });
+            setPending(true);
+            setError(null);
+            const res = await register({ name, email, password });
+            setPending(false);
             if (!res.ok) {
               setError(res.error ?? "Registration failed.");
               return;
             }
-            router.push("/account");
+            router.push(next);
           }}
         >
           <label className="grid gap-2 text-sm font-semibold text-slate-800">
@@ -106,20 +113,29 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b21b6]"
+            disabled={pending}
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#5b21b6] disabled:opacity-60"
           >
-            Create account
+            {pending ? "Creating account…" : "Create account"}
           </button>
         </form>
 
         <div className="mt-5 text-sm text-slate-600">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-brand">
+          <Link href={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brand">
             Login
           </Link>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }
 
